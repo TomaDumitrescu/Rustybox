@@ -1,0 +1,759 @@
+name: Autograding Tests
+'on':
+- workflow_dispatch
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Rust
+      id: rust
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Rust
+        setup-command: cargo build
+        command: cargo install --path .
+        timeout: 3
+    - name: Install Testing
+      id: install-testing
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Install Testing
+        setup-command: git submodule update --init && cd tests && git checkout main
+          && git pull
+        command: cd tests && npm install
+        timeout: 10
+    - name: mkdir error
+      id: mkdir-error
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: mkdir error
+        setup-command: ''
+        command: cd tests && ./run_all.sh mkdir/mkdir_error.sh
+        timeout: 5
+        max-score: 5
+    - name: mkdir multiple
+      id: mkdir-multiple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: mkdir multiple
+        setup-command: ''
+        command: cd tests && ./run_all.sh mkdir/mkdir_multiple.sh
+        timeout: 5
+        max-score: 5
+    - name: mkdir path
+      id: mkdir-path
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: mkdir path
+        setup-command: ''
+        command: cd tests && ./run_all.sh mkdir/mkdir_path.sh
+        timeout: 5
+        max-score: 5
+    - name: mkdir path multiple
+      id: mkdir-path-multiple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: mkdir path multiple
+        setup-command: ''
+        command: cd tests && ./run_all.sh mkdir/mkdir_path_multiple.sh
+        timeout: 5
+        max-score: 5
+    - name: mkdir simple
+      id: mkdir-simple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: mkdir simple
+        setup-command: ''
+        command: cd tests && ./run_all.sh mkdir/mkdir_simple.sh
+        timeout: 5
+        max-score: 5
+    - name: mkdir spaces
+      id: mkdir-spaces
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: mkdir spaces
+        setup-command: ''
+        command: cd tests && ./run_all.sh mkdir/mkdir_spaces.sh
+        timeout: 5
+        max-score: 5
+    - name: rmdir empty error
+      id: rmdir-empty-error
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rmdir empty error
+        setup-command: ''
+        command: cd tests && ./run_all.sh rmdir/rmdir_empty_error.sh
+        timeout: 5
+        max-score: 5
+    - name: rmedir exists error
+      id: rmedir-exists-error
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rmedir exists error
+        setup-command: ''
+        command: cd tests && ./run_all.sh rmdir/rmdir_exists_error.sh
+        timeout: 5
+        max-score: 5
+    - name: rmdir link
+      id: rmdir-link
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rmdir link
+        setup-command: ''
+        command: cd tests && ./run_all.sh rmdir/rmdir_link.sh
+        timeout: 5
+        max-score: 5
+    - name: rmdir multiple
+      id: rmdir-multiple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rmdir multiple
+        setup-command: ''
+        command: cd tests && ./run_all.sh rmdir/rmdir_multiple.sh
+        timeout: 5
+        max-score: 5
+    - name: rmdir simple
+      id: rmdir-simple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rmdir simple
+        setup-command: ''
+        command: cd tests && ./run_all.sh rmdir/rmdir_simple.sh
+        timeout: 5
+        max-score: 5
+    - name: mv dir
+      id: mv-dir
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: mv dir
+        setup-command: ''
+        command: cd tests && ./run_all.sh mv/mv_dir.sh
+        timeout: 5
+        max-score: 5
+    - name: mv error
+      id: mv-error
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: mv error
+        setup-command: ''
+        command: cd tests && ./run_all.sh mv/mv_error.sh
+        timeout: 5
+        max-score: 5
+    - name: mv simple
+      id: mv-simple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: mv simple
+        setup-command: ''
+        command: cd tests && ./run_all.sh mv/mv_simple.sh
+        timeout: 5
+        max-score: 5
+    - name: ln error
+      id: ln-error
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ln error
+        setup-command: ''
+        command: cd tests && ./run_all.sh ln/ln_error.sh
+        timeout: 5
+        max-score: 5
+    - name: ln s
+      id: ln-s
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ln s
+        setup-command: ''
+        command: cd tests && ./run_all.sh ln/ln_s.sh
+        timeout: 5
+        max-score: 10
+    - name: ln simple
+      id: ln-simple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ln simple
+        setup-command: ''
+        command: cd tests && ./run_all.sh ln/ln_simple.sh
+        timeout: 5
+        max-score: 5
+    - name: ln symbolic
+      id: ln-symbolic
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ln symbolic
+        setup-command: ''
+        command: cd tests && ./run_all.sh ln/ln_symbolic.sh
+        timeout: 5
+        max-score: 10
+    - name: ls all
+      id: ls-all
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ls all
+        setup-command: ''
+        command: cd tests && ./run_all.sh ls/ls_all.sh
+        timeout: 5
+        max-score: 20
+    - name: ls all re
+      id: ls-all-re
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ls all re
+        setup-command: ''
+        command: cd tests && ./run_all.sh ls/ls_all_r.sh
+        timeout: 5
+        max-score: 25
+    - name: ls dir
+      id: ls-dir
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ls dir
+        setup-command: ''
+        command: cd tests && ./run_all.sh ls/ls_dir.sh
+        timeout: 5
+        max-score: 10
+    - name: ls error
+      id: ls-error
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ls error
+        setup-command: ''
+        command: cd tests && ./run_all.sh ls/ls_err.sh
+        timeout: 5
+        max-score: 5
+    - name: ls file
+      id: ls-file
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ls file
+        setup-command: ''
+        command: cd tests && ./run_all.sh ls/ls_file.sh
+        timeout: 5
+        max-score: 5
+    - name: ls re
+      id: ls-re
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ls re
+        setup-command: ''
+        command: cd tests && ./run_all.sh ls/ls_r.sh
+        timeout: 5
+        max-score: 20
+    - name: ls simple
+      id: ls-simple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ls simple
+        setup-command: ''
+        command: cd tests && ./run_all.sh ls/ls_simple.sh
+        timeout: 5
+        max-score: 10
+    - name: cp error directory
+      id: cp-error-directory
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: cp error directory
+        setup-command: ''
+        command: cd tests && ./run_all.sh cp/cp_error_dir.sh
+        timeout: 5
+        max-score: 10
+    - name: cp error file
+      id: cp-error-file
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: cp error file
+        setup-command: ''
+        command: cd tests && ./run_all.sh cp/cp_error_file.sh
+        timeout: 5
+        max-score: 5
+    - name: cp re
+      id: cp-re
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: cp re
+        setup-command: ''
+        command: cd tests && ./run_all.sh cp/cp_r.sh
+        timeout: 5
+        max-score: 15
+    - name: cp re file
+      id: cp-re-file
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: cp re file
+        setup-command: ''
+        command: cd tests && ./run_all.sh cp/cp_r_file.sh
+        timeout: 5
+        max-score: 10
+    - name: cp rename directory
+      id: cp-rename-directory
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: cp rename directory
+        setup-command: ''
+        command: cd tests && ./run_all.sh cp/cp_rename_dir.sh
+        timeout: 5
+        max-score: 20
+    - name: cp simple file
+      id: cp-simple-file
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: cp simple file
+        setup-command: ''
+        command: cd tests && ./run_all.sh cp/cp_simple_file.sh
+        timeout: 5
+        max-score: 10
+    - name: cp simple rename
+      id: cp-simple-rename
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: cp simple rename
+        setup-command: ''
+        command: cd tests && ./run_all.sh cp/cp_simple_rename.sh
+        timeout: 5
+        max-score: 10
+    - name: chmod add multiple
+      id: chmod-add-multiple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: chmod add multiple
+        setup-command: ''
+        command: cd tests && ./run_all.sh chmod/chmod_add_multiple.sh
+        timeout: 5
+        max-score: 20
+    - name: chmod add one
+      id: chmod-add-one
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: chmod add one
+        setup-command: ''
+        command: cd tests && ./run_all.sh chmod/chmod_add_one.sh
+        timeout: 5
+        max-score: 15
+    - name: chmod all
+      id: chmod-all
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: chmod all
+        setup-command: ''
+        command: cd tests && ./run_all.sh chmod/chmod_all.sh
+        timeout: 5
+        max-score: 20
+    - name: chmod del multiple
+      id: chmod-del-multiple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: chmod del multiple
+        setup-command: ''
+        command: cd tests && ./run_all.sh chmod/chmod_del_multiple.sh
+        timeout: 5
+        max-score: 10
+    - name: chmod del one
+      id: chmod-del-one
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: chmod del one
+        setup-command: ''
+        command: cd tests && ./run_all.sh chmod/chmod_del_one.sh
+        timeout: 5
+        max-score: 15
+    - name: chmod number
+      id: chmod-number
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: chmod number
+        setup-command: ''
+        command: cd tests && ./run_all.sh chmod/chmod_number.sh
+        timeout: 5
+        max-score: 5
+    - name: chmod user group
+      id: chmod-user-group
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: chmod user group
+        setup-command: ''
+        command: cd tests && ./run_all.sh chmod/chmod_user_group.sh
+        timeout: 5
+        max-score: 20
+    - name: rm cascade
+      id: rm-cascade
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rm cascade
+        setup-command: ''
+        command: cd tests && ./run_all.sh rm/rm_cascade.sh
+        timeout: 5
+        max-score: 15
+    - name: rm dir
+      id: rm-dir
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rm dir
+        setup-command: ''
+        command: cd tests && ./run_all.sh rm/rm_dir.sh
+        timeout: 5
+        max-score: 10
+    - name: rm empty directory
+      id: rm-empty-directory
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rm empty directory
+        setup-command: ''
+        command: cd tests && ./run_all.sh rm/rm_empty_dir.sh
+        timeout: 5
+        max-score: 10
+    - name: rm error directory
+      id: rm-error-directory
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rm error directory
+        setup-command: ''
+        command: cd tests && ./run_all.sh rm/rm_error_dir.sh
+        timeout: 5
+        max-score: 10
+    - name: rm error exists
+      id: rm-error-exists
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rm error exists
+        setup-command: ''
+        command: cd tests && ./run_all.sh rm/rm_error_exists.sh
+        timeout: 5
+        max-score: 5
+    - name: rm file
+      id: rm-file
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rm file
+        setup-command: ''
+        command: cd tests && ./run_all.sh rm/rm_file.sh
+        timeout: 5
+        max-score: 5
+    - name: rm multiple files
+      id: rm-multiple-files
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rm multiple files
+        setup-command: ''
+        command: cd tests && ./run_all.sh rm/rm_multiple_files.sh
+        timeout: 5
+        max-score: 5
+    - name: rm multiple mixed
+      id: rm-multiple-mixed
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rm multiple mixed
+        setup-command: ''
+        command: cd tests && ./run_all.sh rm/rm_multiple_mixed.sh
+        timeout: 5
+        max-score: 15
+    - name: rm re
+      id: rm-re
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: rm re
+        setup-command: ''
+        command: cd tests && ./run_all.sh rm/rm_recursive.sh
+        timeout: 5
+        max-score: 15
+    - name: grep multiple
+      id: grep-multiple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: grep multiple
+        setup-command: ''
+        command: cd tests && ./run_all.sh grep/echo_multiple.sh
+        timeout: 5
+        max-score: 10
+    - name: grep nodescription
+      id: grep-nodescription
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: grep nodescription
+        setup-command: ''
+        command: cd tests && ./run_all.sh grep/echo_nodescription.sh
+        timeout: 5
+        max-score: 10
+    - name: grep shell
+      id: grep-shell
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: grep shell
+        setup-command: ''
+        command: cd tests && ./run_all.sh grep/echo_shell.sh
+        timeout: 10
+        max-score: 10
+    - name: grep simple
+      id: grep-simple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: grep simple
+        setup-command: ''
+        command: cd tests && ./run_all.sh grep/grep_simple.sh
+        timeout: 10
+        max-score: 10
+    - name: ls list
+      id: ls-list
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ls list
+        setup-command: ''
+        command: cd tests && ./run_all.sh ls/ls_l.sh
+        timeout: 5
+        max-score: 25
+    - name: ls list re
+      id: ls-list-re
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: ls list re
+        setup-command: ''
+        command: cd tests && ./run_all.sh ls/ls_l_r.sh
+        timeout: 5
+        max-score: 25
+    - name: cat simple
+      id: cat-simple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: cat simple
+        setup-command: ''
+        command: cd tests && ./run_all.sh cat/cat_simple.sh
+        timeout: 5
+        max-score: 5
+    - name: cat triple
+      id: cat-triple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: cat triple
+        setup-command: ''
+        command: cd tests && ./run_all.sh cat/cat_triple.sh
+        timeout: 5
+        max-score: 5
+    - name: cat error
+      id: cat-error
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: cat error
+        setup-command: ''
+        command: cd tests && ./run_all.sh cat/cat_error.sh
+        timeout: 5
+        max-score: 5
+    - name: echo multiple
+      id: echo-multiple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: echo multiple
+        setup-command: ''
+        command: cd tests && ./run_all.sh echo/echo_multiple.sh
+        timeout: 5
+        max-score: 5
+    - name: echo newline multiple
+      id: echo-newline-multiple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: echo newline multiple
+        setup-command: ''
+        command: cd tests && ./run_all.sh echo/echo_newline_multiple.sh
+        timeout: 5
+        max-score: 5
+    - name: echo newline simple
+      id: echo-newline-simple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: echo newline simple
+        setup-command: ''
+        command: cd tests && ./run_all.sh echo/echo_newline_simple.sh
+        timeout: 5
+        max-score: 5
+    - name: echo simple
+      id: echo-simple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: echo simple
+        setup-command: ''
+        command: cd tests && ./run_all.sh echo/echo_simple.sh
+        timeout: 5
+        max-score: 5
+    - name: echo spaces
+      id: echo-spaces
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: echo spaces
+        setup-command: ''
+        command: cd tests && ./run_all.sh echo/echo_spaces.sh
+        timeout: 5
+        max-score: 5
+    - name: pwd
+      id: pwd
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: pwd
+        setup-command: ''
+        command: cd tests && ./run_all.sh pwd/pwd.sh
+        timeout: 5
+        max-score: 5
+    - name: touch access
+      id: touch-access
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: touch access
+        setup-command: ''
+        command: cd tests && ./run_all.sh touch/touch_a.sh
+        timeout: 5
+        max-score: 10
+    - name: touch modified
+      id: touch-modified
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: touch modified
+        setup-command: ''
+        command: cd tests && ./run_all.sh touch/touch_m.sh
+        timeout: 10
+        max-score: 10
+    - name: touch no create new
+      id: touch-no-create-new
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: touch no create new
+        setup-command: ''
+        command: cd tests && ./run_all.sh touch/touch_no_create_new.sh
+        timeout: 5
+        max-score: 10
+    - name: touch simple
+      id: touch-simple
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: touch simple
+        setup-command: ''
+        command: cd tests && ./run_all.sh touch/touch_simple.sh
+        timeout: 5
+        max-score: 5
+    - name: touch simple exists
+      id: touch-simple-exists
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: touch simple exists
+        setup-command: ''
+        command: cd tests && ./run_all.sh touch/touch_simple_exists.sh
+        timeout: 5
+        max-score: 10
+    - name: invalid chmod
+      id: invalid-chmod
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: invalid chmod
+        setup-command: ''
+        command: cd tests && ./run_all.sh invalid/invalid_chmod.sh
+        timeout: 5
+        max-score: 10
+    - name: invalid command
+      id: invalid-command
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: invalid command
+        setup-command: ''
+        command: cd tests && ./run_all.sh invalid/invalid_command.sh
+        timeout: 5
+        max-score: 5
+    - name: invalid parameters
+      id: invalid-parameters
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: invalid parameters
+        setup-command: ''
+        command: cd tests && ./run_all.sh invalid/invalid_parameters.sh
+        timeout: 5
+        max-score: 5
+    - name: invalid parameters 2
+      id: invalid-parameters-2
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: invalid parameters 2
+        setup-command: ''
+        command: cd tests && ./run_all.sh invalid/invalid_parameters2.sh
+        timeout: 5
+        max-score: 10
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        RUST_RESULTS: "${{steps.rust.outputs.result}}"
+        INSTALL-TESTING_RESULTS: "${{steps.install-testing.outputs.result}}"
+        MKDIR-ERROR_RESULTS: "${{steps.mkdir-error.outputs.result}}"
+        MKDIR-MULTIPLE_RESULTS: "${{steps.mkdir-multiple.outputs.result}}"
+        MKDIR-PATH_RESULTS: "${{steps.mkdir-path.outputs.result}}"
+        MKDIR-PATH-MULTIPLE_RESULTS: "${{steps.mkdir-path-multiple.outputs.result}}"
+        MKDIR-SIMPLE_RESULTS: "${{steps.mkdir-simple.outputs.result}}"
+        MKDIR-SPACES_RESULTS: "${{steps.mkdir-spaces.outputs.result}}"
+        RMDIR-EMPTY-ERROR_RESULTS: "${{steps.rmdir-empty-error.outputs.result}}"
+        RMEDIR-EXISTS-ERROR_RESULTS: "${{steps.rmedir-exists-error.outputs.result}}"
+        RMDIR-LINK_RESULTS: "${{steps.rmdir-link.outputs.result}}"
+        RMDIR-MULTIPLE_RESULTS: "${{steps.rmdir-multiple.outputs.result}}"
+        RMDIR-SIMPLE_RESULTS: "${{steps.rmdir-simple.outputs.result}}"
+        MV-DIR_RESULTS: "${{steps.mv-dir.outputs.result}}"
+        MV-ERROR_RESULTS: "${{steps.mv-error.outputs.result}}"
+        MV-SIMPLE_RESULTS: "${{steps.mv-simple.outputs.result}}"
+        LN-ERROR_RESULTS: "${{steps.ln-error.outputs.result}}"
+        LN-S_RESULTS: "${{steps.ln-s.outputs.result}}"
+        LN-SIMPLE_RESULTS: "${{steps.ln-simple.outputs.result}}"
+        LN-SYMBOLIC_RESULTS: "${{steps.ln-symbolic.outputs.result}}"
+        LS-ALL_RESULTS: "${{steps.ls-all.outputs.result}}"
+        LS-ALL-RE_RESULTS: "${{steps.ls-all-re.outputs.result}}"
+        LS-DIR_RESULTS: "${{steps.ls-dir.outputs.result}}"
+        LS-ERROR_RESULTS: "${{steps.ls-error.outputs.result}}"
+        LS-FILE_RESULTS: "${{steps.ls-file.outputs.result}}"
+        LS-RE_RESULTS: "${{steps.ls-re.outputs.result}}"
+        LS-SIMPLE_RESULTS: "${{steps.ls-simple.outputs.result}}"
+        CP-ERROR-DIRECTORY_RESULTS: "${{steps.cp-error-directory.outputs.result}}"
+        CP-ERROR-FILE_RESULTS: "${{steps.cp-error-file.outputs.result}}"
+        CP-RE_RESULTS: "${{steps.cp-re.outputs.result}}"
+        CP-RE-FILE_RESULTS: "${{steps.cp-re-file.outputs.result}}"
+        CP-RENAME-DIRECTORY_RESULTS: "${{steps.cp-rename-directory.outputs.result}}"
+        CP-SIMPLE-FILE_RESULTS: "${{steps.cp-simple-file.outputs.result}}"
+        CP-SIMPLE-RENAME_RESULTS: "${{steps.cp-simple-rename.outputs.result}}"
+        CHMOD-ADD-MULTIPLE_RESULTS: "${{steps.chmod-add-multiple.outputs.result}}"
+        CHMOD-ADD-ONE_RESULTS: "${{steps.chmod-add-one.outputs.result}}"
+        CHMOD-ALL_RESULTS: "${{steps.chmod-all.outputs.result}}"
+        CHMOD-DEL-MULTIPLE_RESULTS: "${{steps.chmod-del-multiple.outputs.result}}"
+        CHMOD-DEL-ONE_RESULTS: "${{steps.chmod-del-one.outputs.result}}"
+        CHMOD-NUMBER_RESULTS: "${{steps.chmod-number.outputs.result}}"
+        CHMOD-USER-GROUP_RESULTS: "${{steps.chmod-user-group.outputs.result}}"
+        RM-CASCADE_RESULTS: "${{steps.rm-cascade.outputs.result}}"
+        RM-DIR_RESULTS: "${{steps.rm-dir.outputs.result}}"
+        RM-EMPTY-DIRECTORY_RESULTS: "${{steps.rm-empty-directory.outputs.result}}"
+        RM-ERROR-DIRECTORY_RESULTS: "${{steps.rm-error-directory.outputs.result}}"
+        RM-ERROR-EXISTS_RESULTS: "${{steps.rm-error-exists.outputs.result}}"
+        RM-FILE_RESULTS: "${{steps.rm-file.outputs.result}}"
+        RM-MULTIPLE-FILES_RESULTS: "${{steps.rm-multiple-files.outputs.result}}"
+        RM-MULTIPLE-MIXED_RESULTS: "${{steps.rm-multiple-mixed.outputs.result}}"
+        RM-RE_RESULTS: "${{steps.rm-re.outputs.result}}"
+        GREP-MULTIPLE_RESULTS: "${{steps.grep-multiple.outputs.result}}"
+        GREP-NODESCRIPTION_RESULTS: "${{steps.grep-nodescription.outputs.result}}"
+        GREP-SHELL_RESULTS: "${{steps.grep-shell.outputs.result}}"
+        GREP-SIMPLE_RESULTS: "${{steps.grep-simple.outputs.result}}"
+        LS-LIST_RESULTS: "${{steps.ls-list.outputs.result}}"
+        LS-LIST-RE_RESULTS: "${{steps.ls-list-re.outputs.result}}"
+        CAT-SIMPLE_RESULTS: "${{steps.cat-simple.outputs.result}}"
+        CAT-TRIPLE_RESULTS: "${{steps.cat-triple.outputs.result}}"
+        CAT-ERROR_RESULTS: "${{steps.cat-error.outputs.result}}"
+        ECHO-MULTIPLE_RESULTS: "${{steps.echo-multiple.outputs.result}}"
+        ECHO-NEWLINE-MULTIPLE_RESULTS: "${{steps.echo-newline-multiple.outputs.result}}"
+        ECHO-NEWLINE-SIMPLE_RESULTS: "${{steps.echo-newline-simple.outputs.result}}"
+        ECHO-SIMPLE_RESULTS: "${{steps.echo-simple.outputs.result}}"
+        ECHO-SPACES_RESULTS: "${{steps.echo-spaces.outputs.result}}"
+        PWD_RESULTS: "${{steps.pwd.outputs.result}}"
+        TOUCH-ACCESS_RESULTS: "${{steps.touch-access.outputs.result}}"
+        TOUCH-MODIFIED_RESULTS: "${{steps.touch-modified.outputs.result}}"
+        TOUCH-NO-CREATE-NEW_RESULTS: "${{steps.touch-no-create-new.outputs.result}}"
+        TOUCH-SIMPLE_RESULTS: "${{steps.touch-simple.outputs.result}}"
+        TOUCH-SIMPLE-EXISTS_RESULTS: "${{steps.touch-simple-exists.outputs.result}}"
+        INVALID-CHMOD_RESULTS: "${{steps.invalid-chmod.outputs.result}}"
+        INVALID-COMMAND_RESULTS: "${{steps.invalid-command.outputs.result}}"
+        INVALID-PARAMETERS_RESULTS: "${{steps.invalid-parameters.outputs.result}}"
+        INVALID-PARAMETERS-2_RESULTS: "${{steps.invalid-parameters-2.outputs.result}}"
+      with:
+        runners: rust,install-testing,mkdir-error,mkdir-multiple,mkdir-path,mkdir-path-multiple,mkdir-simple,mkdir-spaces,rmdir-empty-error,rmedir-exists-error,rmdir-link,rmdir-multiple,rmdir-simple,mv-dir,mv-error,mv-simple,ln-error,ln-s,ln-simple,ln-symbolic,ls-all,ls-all-re,ls-dir,ls-error,ls-file,ls-re,ls-simple,cp-error-directory,cp-error-file,cp-re,cp-re-file,cp-rename-directory,cp-simple-file,cp-simple-rename,chmod-add-multiple,chmod-add-one,chmod-all,chmod-del-multiple,chmod-del-one,chmod-number,chmod-user-group,rm-cascade,rm-dir,rm-empty-directory,rm-error-directory,rm-error-exists,rm-file,rm-multiple-files,rm-multiple-mixed,rm-re,grep-multiple,grep-nodescription,grep-shell,grep-simple,ls-list,ls-list-re,cat-simple,cat-triple,cat-error,echo-multiple,echo-newline-multiple,echo-newline-simple,echo-simple,echo-spaces,pwd,touch-access,touch-modified,touch-no-create-new,touch-simple,touch-simple-exists,invalid-chmod,invalid-command,invalid-parameters,invalid-parameters-2
