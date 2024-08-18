@@ -1,41 +1,44 @@
-##Student: Toma-Ioan Dumitrescu
-##Group: 321CA
+# Rustybox
+Describe your solution for the homework.
 
-This project implements basic commands present in linux terminal: pwd, echo, cat, cp, mv, rm, rmdir,
-chmod, mkdir, touch, cat, ls, for simplified input cases (parameters).
+## Verify
 
-The idea consist in retaining the list of arguments and calling the appropriate std::fs functions in
-order to perform the requested operations. For returning value, the program uses use std::process::exit.
+Run the following commands to test your homework:
 
-pwd -> neglect rare errors (current path has been deletes etc), display the path of current_dir()
+You will have to install NodeJS (it is installed in the codespace)
 
-echo -> input cornercases, if -n is present => print with print!, not println!
-		Take a slice of arg_list, after -n or after echo if -n is not present, clone it because of
-borrowing, collect the elements of the list in a string array and join the elements in a string
-where elements are separated by " ".
+```bash
+# Clone tests repository
+git submodule update --init 
 
-print_file -> auxiliary function for cat, transforms the content of a file in a string (quote *)
+# Update tests repository to the lastest version
+cd tests
+git pull 
+cd ..
 
-cat -> for every filename, apply print_file and check for errors
+# Install loadash
+npm install lodash
+```
 
-mkdir -> for all directories in arg_list, call create_dir fs function, check errors and exit the
-		program with the appropriate code
+Install rustybox
 
-rmdir -> same inference from mkdir
+```bash
+cargo install --path .
+```
 
-chmod -> change permissions when numerical mask is used. Unfortunately, this works for string case
-only when initial permissions do not matter.
+If the `rustybox` command can't be found, be sure to add the default cargo installation folder into the PATH environment variable
 
-rm -> remove a file or a directory based on the options. As we can have maximum 2 options, we can
-analyse exactly 2 arguments after rm if they are -r, -R, --dir or -d. Error exit only after the for
-loop, as some files may still be deleted. Use of the functions fpath.exists() or fpath.is_dir() to
-check some information about the parameter.
+```bash
+export PATH=/home/<your username here>/.cargo/bin:$PATH
+```
 
-touch -> works only when there are no options. Use open options with new, create (quote **)
+Run tests
 
-ls -> reading actual path and find all directories, use a for loop to print them. Only simple
-ls implemented.
+```bash
+cd tests
+# Run all tests 
+./run_all.sh
 
-Bibliography:
-https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/first-edition/README.html
-https://doc.rust-lang.org/rust-by-example/index.html (for *, **)
+# Run single test
+./run_all.sh pwd/pwd.sh
+```
