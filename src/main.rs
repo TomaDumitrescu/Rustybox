@@ -403,6 +403,96 @@ fn grep(arg_list: &[String])
 	}
 }
 
+fn cp_r(source: &Path, destination: &Path) {
+	if !destination.exists() {
+		let res = fs::create_dir_all(destination);
+		match res {
+			Ok(()) => (),
+			Err(_err) => {
+				exit(-90);
+			},
+		}
+	}
+
+	let dir_itr = fs::read_dir(source).unwrap();
+	for node_err in dir_itr {
+		let node = node_err.unwrap();
+		let spath = node.path();
+		let dpath = destination.join(node.file_name());
+
+		if !spath.is_dir() {
+			let res = fs::copy(&spath, &dpath);
+			match res {
+				Ok(_val) => (),
+				Err(_err) => {
+					exit(-90);
+				}
+			}
+		} else {
+			cp_r(&spath, &dpath);
+		}
+	}
+}
+
+fn cp(arg_list: &[String]) {
+	let not_recursive: bool = arg_list[2] != "-r" && arg_list[2] != "-R" && arg_list[2] != "--recursive";
+
+	if arg_list.len() != 4 && not_recursive {
+		println!("Invalid command");
+		exit(-1);
+	}
+
+	if arg_list.len() != 5 && !not_recursive {
+		println!("Invalid command");
+		exit(-1);
+	}
+
+	let rsource = Path::new(&arg_list[3]);
+
+	if !not_recursive && rsource.is_dir() {
+		let rdestination = Path::new(&arg_list[4]);
+		let rdestination_full = if rdestination.exists() && rdestination.is_dir() {
+			rdestination.join(rsource.file_name().unwrap())
+		} else {
+			rdestination.to_path_buf()
+		};
+
+		cp_r(rsource, &rdestination_full);
+
+		exit(0);
+	}
+
+	let mut skip_arg = 0;
+	if !not_recursive {
+		skip_arg += 1;
+	}
+
+	let source = Path::new(&arg_list[2 + skip_arg]);
+	let destination = Path::new(&arg_list[3 + skip_arg]);
+
+	if !source.exists() || source.is_dir() {
+		exit(-90);
+	}
+
+	if !destination.is_dir() {
+		let res = fs::copy(source, destination);
+		match res {
+			Ok(_val) => (),
+			Err(_err) => {
+				exit(-90);
+			},
+		}
+	} else {
+		let res = fs::copy(source, destination.join(source.file_name().unwrap()));
+		match res {
+			Ok(_val) => (),
+			Err(_err) => {
+				exit(-90);
+			},
+		}
+	}
+}
+
 fn main()
 {
 	let arg_list: Vec<String> = env::args().collect();
@@ -455,6 +545,10 @@ fn main()
 
 		"grep" => {
 			grep(&arg_list);
+		}
+
+		"cp" => {
+			cp(&arg_list);
 		}
 
 		_ => {
