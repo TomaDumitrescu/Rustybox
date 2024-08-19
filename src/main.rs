@@ -217,26 +217,16 @@ fn chmod(arg_list: &[String])
 			mask += (1 + 10 + 10 * 10) * o_bit;
 		}
 
-		if sgn == 0 {
-			if u == 1 {
-				u = 8 - (mask / 100);
-			}
-			if g == 1 {
-				g = 8 - ((mask / 10) % 10);
-			}
-			if o == 1 {
-				o = 8 - (mask % 10);
-			}
-			mask = 10 * 10 * u + 10 * g + o;
-		}
-
 		let o_str_mask = format!("{}", mask);
-		println!("Mask {}", mask);
 		let o_mask = match u32::from_str_radix(&o_str_mask, 8) {
 			Ok(ok) => ok,
 			Err(_e) => exit(-25),
 		};
-		let perm = fs::Permissions::from_mode(o_mask & init_perm);
+		let mut perm = fs::Permissions::from_mode(o_mask | init_perm);
+		if sgn == 0 {
+			perm = fs::Permissions::from_mode((!o_mask) & init_perm);
+		}
+
 		match fs::set_permissions(fpath, perm) {
 			Ok(_ok) => {
 			}
