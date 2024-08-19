@@ -7,6 +7,7 @@ use std::fs::{File, OpenOptions};
 use std::path::Path;
 use std::process::exit;
 use std::os::unix::fs::PermissionsExt;
+use regex::Regex;
 
 // very rare errors for this command
 fn pwd()
@@ -110,9 +111,9 @@ fn rmdir(arg_list: &[String])
 }
 
 fn retrieve_file_perm(fpath: &str) -> std::io::Result<u32> {
-    let fmetadata = fs::metadata(fpath)?;
-    let fperm = fmetadata.permissions();
-    Ok(fperm.mode())
+	let fmetadata = fs::metadata(fpath)?;
+	let fperm = fmetadata.permissions();
+	Ok(fperm.mode())
 }
 
 // observe that mask is numeric if and only if first character is numeric
@@ -248,20 +249,20 @@ fn rm(arg_list: &[String])
 		|| arg_list[2] == "-d" {
 		idx += 1;
 
-        if arg_list.len() <= 3 {
-            println!("Invalid command");
-            exit(-1);
-        }
+		if arg_list.len() <= 3 {
+			println!("Invalid command");
+			exit(-1);
+		}
 	}
 
 	if arg_list.len() >= 4 && (arg_list[3] == "-r" || arg_list[3] == "-R" ||
-        arg_list[3] == "--dir" || arg_list[3] == "-d") {
+		arg_list[3] == "--dir" || arg_list[3] == "-d") {
 		idx += 1;
 
-        if arg_list.len() <= 4 {
-            println!("Invalid command");
-            exit(-1);
-        }
+		if arg_list.len() <= 4 {
+			println!("Invalid command");
+			exit(-1);
+		}
 	}
 
 	for arg in arg_list.iter().skip(idx) {
@@ -270,7 +271,7 @@ fn rm(arg_list: &[String])
 			exit(-70);
 		}
 		if arg_list[2] != "--dir" && arg_list[2] != "-d" &&
-            !(arg_list.len() >= 4 &&
+			!(arg_list.len() >= 4 &&
 			(arg_list[3] == "--dir" && arg_list[3] == "-d")) {
 			if fpath.is_dir() {
 				// the directory is not removed (just ignored)
@@ -334,11 +335,11 @@ fn touch(arg_list: &[String])
 
 fn ls(arg_list: &[String])
 {
-    let fpath = if arg_list.len() >= 3 {
-        &arg_list[2]
-    } else {
+	let fpath = if arg_list.len() >= 3 {
+		&arg_list[2]
+	} else {
 		"."
-    };
+	};
 
 	match fs::read_dir(Path::new(fpath)) {
 		Err(_err) => exit(-80),
@@ -378,14 +379,38 @@ fn ln(arg_list: &[String])
 	exit(0);
 }
 
+fn grep(arg_list: &[String])
+{
+	let mut idx: usize = 2;
+	if arg_list[idx] == "-i" {
+		idx += 1;
+	}
+
+	let expr = Regex::new(&arg_list[idx]).unwrap();
+	let content = File::open(&arg_list[idx + 1]).unwrap();
+	let content_search = io::BufReader::new(content);
+	let rows = content_search.lines();
+
+	for row in rows {
+		let raw_row = row.unwrap();
+		if idx == 2 && expr.is_match(&raw_row) {
+			println!("{}", raw_row);
+		}
+
+		if idx == 3 && expr.is_match(&raw_row) {
+			println!("{}", raw_row);
+		}
+	}
+}
+
 fn main()
 {
 	let arg_list: Vec<String> = env::args().collect();
 
-    if arg_list.len() <= 1 {
-        println!("Invalid command");
-        exit(-1);
-    }
+	if arg_list.len() <= 1 {
+		println!("Invalid command");
+		exit(-1);
+	}
 
 	match (&arg_list[1]).as_str() {
 		"pwd" => {
@@ -426,6 +451,10 @@ fn main()
 
 		"ln" => {
 			ln(&arg_list);
+		}
+
+		"grep" => {
+			grep(&arg_list);
 		}
 
 		_ => {
