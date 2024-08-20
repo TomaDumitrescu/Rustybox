@@ -536,6 +536,52 @@ fn cp(arg_list: &[String]) {
 	}
 }
 
+fn mv(arg_list: &[String]) {
+	if arg_list.len() != 4 {
+		println!("Invalid command");
+		exit(-1);
+	}
+
+	let source = Path::new(&arg_list[2]);
+	let destination = Path::new(&arg_list[3]);
+
+	if !source.exists() {
+		exit(-40);
+	}
+
+	if !destination.exists() {
+		match fs::rename(source, destination) {
+			Ok(()) => (),
+			Err(_err) => {
+				exit(-40);
+			},
+		}
+	} else {
+		if source.is_dir() && !destination.is_dir() {
+			exit(-40);
+		}
+
+		let cp_args = vec![
+			String::from("skip_1"),
+			String::from("cp"),
+			String::from("-r"),
+			arg_list[2].clone(),
+			arg_list[3].clone(),
+		];
+
+		cp(&cp_args);
+
+		let rm_args = vec![
+			String::from("skip_1"),
+			String::from("rm"),
+			String::from("-r"),
+			arg_list[2].clone(),
+		];
+
+		rm(&rm_args);
+	}
+}
+
 fn main()
 {
 	let arg_list: Vec<String> = env::args().collect();
@@ -592,6 +638,10 @@ fn main()
 
 		"cp" => {
 			cp(&arg_list);
+		}
+
+		"mv" => {
+			mv(&arg_list);
 		}
 
 		_ => {
