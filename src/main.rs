@@ -239,6 +239,34 @@ fn chmod(arg_list: &[String])
 	}
 }
 
+// Remove recursive
+fn rm_r(dir: &Path) {
+	let dir_itr = fs::read_dir(dir).unwrap();
+	for node_err in dir_itr {
+		let node = node_err.unwrap();
+		let npath = node.path();
+
+		if !npath.is_dir() {
+			let res = fs::remove_file(&npath);
+			match res {
+				Ok(_ok) => (),
+				Err(_e) => {
+					exit(-70);
+				},
+			}
+		} else {
+			rm_r(&npath);
+		}
+	}
+
+	match fs::remove_dir(&dir) {
+		Err(_e) => {
+			exit(-70);
+		},
+		Ok(_ok) => {},
+	}
+}
+
 // non-recursive rm
 fn rm(arg_list: &[String])
 {
@@ -246,7 +274,7 @@ fn rm(arg_list: &[String])
 	let mut error = 0;
 
 	if arg_list[2] == "-r" || arg_list[2] == "-R" || arg_list[2] == "--dir"
-		|| arg_list[2] == "-d" {
+		|| arg_list[2] == "-d" || arg_list[2] == "--recursive" {
 		idx += 1;
 
 		if arg_list.len() <= 3 {
@@ -256,7 +284,7 @@ fn rm(arg_list: &[String])
 	}
 
 	if arg_list.len() >= 4 && (arg_list[3] == "-r" || arg_list[3] == "-R" ||
-		arg_list[3] == "--dir" || arg_list[3] == "-d") {
+		arg_list[3] == "--dir" || arg_list[3] == "-d" || arg_list[3] == "--recursive") {
 		idx += 1;
 
 		if arg_list.len() <= 4 {
@@ -265,31 +293,46 @@ fn rm(arg_list: &[String])
 		}
 	}
 
+	let not_dir_flag = arg_list[2] != "--dir" && arg_list[2] != "-d" &&
+	!(arg_list.len() >= 4 && (arg_list[3] == "--dir" || arg_list[3] == "-d"));
+
+	let not_r_flag = arg_list[2] != "-r" && arg_list[2] != "-R" && arg_list[2] != "--recursive" &&
+	!(arg_list.len() >= 4 && (arg_list[3] == "-r" || arg_list[3] == "-R" || arg_list[3] == "--recursive"));
+
 	for arg in arg_list.iter().skip(idx) {
 		let fpath = &Path::new(&arg);
 		if !fpath.exists() {
-			exit(-70);
+			error = 1;
+			continue;
 		}
-		if arg_list[2] != "--dir" && arg_list[2] != "-d" &&
-			!(arg_list.len() >= 4 &&
-			(arg_list[3] == "--dir" && arg_list[3] == "-d")) {
-			if fpath.is_dir() {
-				// the directory is not removed (just ignored)
+
+		if fpath.is_dir() {
+			if not_r_flag && not_dir_flag {
 				error = 1;
+				continue;
 			}
 
+			if !not_r_flag {
+				rm_r(fpath);
+				continue;
+			}
+
+			if !not_dir_flag {
+				match fs::remove_dir(&fpath) {
+					Err(_e) => {
+						error = 1;
+						continue;
+					},
+					Ok(_ok) => {},
+				}
+			}
+		} else {
 			match fs::remove_file(&arg) {
 				Ok(_ok) => {}
 				Err(_e) => {
 					error = 1;
+					continue;
 				}
-			}
-		} else {
-			match fs::remove_dir(&arg) {
-				Err(_e) => {
-								error = 1;
-				},
-				Ok(_ok) => {},
 			}
 		}
 	}
