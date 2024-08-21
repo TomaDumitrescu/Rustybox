@@ -4,7 +4,7 @@ use std::env;
 use std::env::current_dir;
 use std::fs;
 use std::fs::{File, OpenOptions};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::os::unix::fs::PermissionsExt;
 use regex::Regex;
@@ -348,21 +348,41 @@ fn touch(arg_list: &[String])
 {
 	for arg in arg_list.iter().skip(2) {
 		let fpath = &Path::new(&arg);
-		if arg_list[2] == "-a" {
-			exit(-100);
+		if !fpath.exists() && (arg_list[2] == "-c" || arg_list[2] == "--no-create") {
+			exit(0);
 		}
 
-		if arg_list[2] == "-c" {
-			match OpenOptions::new().create(false).write(true).open(fpath) {
+		if arg_list[2] == "-a" {
+			match fs::OpenOptions::new().read(true).open(fpath) {
 				Ok(_) => {},
 				Err(_e) => {
 					exit(-100);
 				},
 			}
+
+			continue;
 		}
 
 		if arg_list[2] == "-m" {
-			exit(-100);
+			match fs::OpenOptions::new().append(true).open(fpath) {
+				Ok(_) => {},
+				Err(_e) => {
+					exit(-100);
+				},
+			}
+
+			continue;
+		}
+
+		if arg_list[2] == "-c" || arg_list[2] == "--no-create" {
+			match fs::OpenOptions::new().write(true).open(fpath) {
+				Ok(_) => {},
+				Err(_e) => {
+					exit(-100);
+				},
+			}
+
+			continue;
 		}
 
 		match OpenOptions::new().create(true).write(true).open(fpath) {
@@ -376,18 +396,121 @@ fn touch(arg_list: &[String])
 	exit(0);
 }
 
+fn ls_r(dir: &Path, hidden: bool)
+{
+	let dir_itr = fs::read_dir(dir).unwrap();
+	// let fname_opt = dir.file_name()
+	// .and_then(|fname| fname.to_str())
+	// .map(|fstr| fstr.to_string());
+
+	// match fname_opt {
+	// 	Some(fname_string) => {
+	// 		if fname_string.starts_with('.') {
+	// 			if hidden {
+	// 				println!("{}:", fname_string);
+	// 			}
+	// 		} else {
+	// 			println!("{}:", fname_string);
+	// 		}
+	// 	},
+	// 	None => (),
+	// }
+
+	let mut dpaths: Vec<PathBuf> = Vec::new();
+
+	for node_err in dir_itr {
+		let node = node_err.unwrap();
+		let npath = node.path();
+
+		if npath.is_dir() {
+			dpaths.push(npath.clone());
+		}
+
+		let nname_opt = npath.file_name()
+		.and_then(|fname| fname.to_str())
+		.map(|fstr| fstr.to_string());
+
+		match nname_opt {
+			Some(fname_string) => {
+				if fname_string.starts_with('.') {
+					if !hidden {
+						continue;
+					}
+	
+					println!("{}", fname_string);
+				} else {
+					println!("{}", fname_string);
+				}
+			},
+			None => (),
+		}
+	}
+
+	for dir in dpaths {
+		ls_r(&dir, hidden);
+	}
+}
+
 fn ls(arg_list: &[String])
 {
-	let fpath = if arg_list.len() >= 3 {
-		&arg_list[2]
-	} else {
-		"."
-	};
+	let mut hidden: bool = false;
+	let mut recursive: bool = false;
+	let mut fpath_str = ".";
+	let mut skip_idx = 0;
 
-	match fs::read_dir(Path::new(fpath)) {
+	for i in 0..=1 {
+		if arg_list.len() >= 3 + i && (arg_list[2 + i] == "-a" || arg_list[2 + i] == "-all") {
+			skip_idx += 1;
+			hidden = true;
+		}
+	
+		if arg_list.len() >= 3 + i && (arg_list[2 + i] == "-R" || arg_list[2 + i] == "--recursive") {
+			skip_idx += 1;
+			recursive = true;
+		}
+	}
+
+	if arg_list.len() > 2 + skip_idx {
+		fpath_str = &arg_list[2 + skip_idx];
+	}
+
+	let fpath = Path::new(fpath_str);
+
+	if fpath.is_file() {
+		println!("{}", arg_list[2 + skip_idx]);
+	}
+
+	if recursive {
+		ls_r(fpath, hidden);
+		exit(0);
+	}
+
+	if hidden {
+		println!(".\n..");
+	}
+
+	match fs::read_dir(fpath) {
 		Err(_err) => exit(-80),
 		Ok(dirs) => for dir in dirs {
-			println!("> {:?}", dir.unwrap().path());
+			let dpath = dir.unwrap().path();
+			let fname_opt = dpath.file_name()
+			.and_then(|fname| fname.to_str())
+			.map(|fstr| fstr.to_string());
+
+			match fname_opt {
+				Some(fname_string) => {
+					if fname_string.starts_with('.') {
+						if !hidden {
+							continue;
+						}
+
+						println!("{}", fname_string);
+					} else {
+						println!("{}", fname_string);
+					}
+				},
+				None => (),
+			}
 		},
 	}
 }
