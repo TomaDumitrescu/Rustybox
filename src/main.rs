@@ -447,21 +447,32 @@ fn ls_r(dir: &Path, hidden: bool, prefix: &mut String)
 {
 	let dir_itr = fs::read_dir(dir).unwrap();
 
+	let dname_opt = dir.file_name()
+	.and_then(|fname| fname.to_str())
+	.map(|fstr| fstr.to_string());
+
+	match dname_opt {
+		Some(dname_string) => {
+			// Prefix from the ls_r parameter completes the relative path
+			let prefix_c = prefix.clone();
+			if dname_string.starts_with('.') {
+				if hidden {
+					println!("{}:", prefix_c);
+				}
+			} else {
+				println!("{}:", prefix_c);
+			}
+		},
+		None => (),
+	}
+
 	/* The traversed directories are added to an array to be
 	again traversed, simulating ls -R command behavior */
 	let mut dpaths: Vec<PathBuf> = Vec::new();
 
 	// If -a flag, then list current and parent directories signs
 	if hidden {
-		// Prefix from the ls_r parameter completes the relative path
-		let mut prefix_c1 = prefix.clone();
-		prefix_c1.push_str(".");
-		println!("{}", prefix_c1);
-
-		// Clone needed to not modify prefix in wrong sense
-		let mut prefix_c1 = prefix.clone();
-		prefix_c1.push_str("..");
-		println!("{}", prefix_c1);
+		println!(".\n..");
 	}
 
 	for node_err in dir_itr {
@@ -480,16 +491,14 @@ fn ls_r(dir: &Path, hidden: bool, prefix: &mut String)
 
 		match nname_opt {
 			Some(fname_string) => {
-				let mut prefix_c = prefix.clone();
-				prefix_c.push_str(&fname_string);
 				if fname_string.starts_with('.') {
 					if !hidden {
 						continue;
 					}
 	
-					println!("{}", prefix_c);
+					println!("{}", fname_string);
 				} else {
-					println!("{}", prefix_c);
+					println!("{}", fname_string);
 				}
 			},
 			None => (),
@@ -505,8 +514,8 @@ fn ls_r(dir: &Path, hidden: bool, prefix: &mut String)
 			Some(dname_string) => {
 				let mut relative_path = prefix.clone();
 				// Mark the advance in the file tree in the prefix path
-				relative_path.push_str(&dname_string);
 				relative_path.push_str("/");
+				relative_path.push_str(&dname_string);
 				ls_r(&dir, hidden, &mut relative_path);
 			},
 			None => (),
@@ -552,7 +561,11 @@ fn ls(arg_list: &[String])
 	}
 
 	if recursive {
-		let empty_path = "";
+		let empty_path = if fpath_str == "." {
+			""
+		} else {
+			fpath_str
+		};
 		ls_r(fpath, hidden, &mut empty_path.to_string());
 		exit(0);
 	}
