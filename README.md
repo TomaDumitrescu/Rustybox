@@ -1,4 +1,4 @@
-## Copyright 2023 ~ Toma-Ioan Dumitrescu
+## Copyright 2024 ~ Toma-Ioan Dumitrescu
 ## Faculty of Automatic Control and Computer Science
 
 ### Description
