@@ -27,7 +27,6 @@ fn echo(arg_list: &[String])
 	}
 
 	if arg_list[2] == "-n" {
-
 		/* The first 3 arguments are skipped, cloned() because
 		there are multiple elements (borrowing reasons) */
 		let cloned_list = arg_list.iter().skip(3).cloned();
@@ -120,6 +119,107 @@ fn retrieve_file_perm(fpath: &str) -> std::io::Result<u32> {
 	Ok(fperm.mode())
 }
 
+// Logic for string permissions mode
+fn chmod_string_mask(arg_list: &[String])
+{
+	let fpath = &Path::new(&arg_list[arg_list.len() - 1]);
+	let char1 = arg_list[2].chars().next().expect("_");
+
+	if char1 != 'u' && char1 != 'g' && char1 != 'o' && char1 != 'a' {
+		println!("Invalid command");
+		exit(-1);
+	}
+
+	// retrieving initial permissions of the file
+	let path = &arg_list[3];
+
+	let mut init_perm = match retrieve_file_perm(path) {
+		Ok(tmp_perm) => tmp_perm,
+		Err(_) => {
+			exit(-25);
+		}
+	};
+
+	// Eliminate unnecessary digits
+	init_perm = init_perm & 0o777;
+
+	// Convert string mask to numeric mask
+	let mut u = 0;
+	let mut g = 0;
+	let mut o = 0;
+	let mut a = 0;
+	let mut sgn = 0;
+	let mut new_logic = 0;
+	let mut o_bit = 0;
+	let mut mask = 0;
+
+	for c in arg_list[2].chars() {
+		if c == '+' {
+			new_logic = 1;
+			sgn = 1;
+		}
+		if c == '-' {
+			new_logic = 1;
+		}
+		if c == 'u' {
+			u = 1;
+		}
+		if c == 'g' {
+			g = 1;
+		}
+		if c == 'o' {
+			o = 1;
+		}
+		if c == 'a' {
+			a = 1;
+		}
+		if new_logic == 1 {
+			if c == 'r' {
+				o_bit += 4;
+			}
+			if c == 'w' {
+				o_bit += 2;
+			}
+			if c == 'x' {
+				o_bit += 1;
+			}
+		}
+	}
+
+	if u == 1 {
+		mask += 10 * 10 * o_bit;
+	}
+	if g == 1 {
+		mask += 10 * o_bit;
+	}
+	if o == 1 {
+		mask += o_bit;
+	}
+	if a == 1 {
+		mask += (1 + 10 + 10 * 10) * o_bit;
+	}
+
+	let o_str_mask = format!("{}", mask);
+	let o_mask = match u32::from_str_radix(&o_str_mask, 8) {
+		Ok(ok) => ok,
+		Err(_) => exit(-25),
+	};
+
+	let mut perm = fs::Permissions::from_mode(o_mask | init_perm);
+	if sgn == 0 {
+		perm = fs::Permissions::from_mode((!o_mask) & init_perm);
+	}
+
+	match fs::set_permissions(fpath, perm) {
+		Ok(_) => {}
+		Err(_) => {
+			exit(-25);
+		}
+	}
+
+	exit(0);
+}
+
 // Changes permissions to specific ones
 fn chmod(arg_list: &[String])
 {
@@ -135,12 +235,12 @@ fn chmod(arg_list: &[String])
 		// Covert a string to a number in octal base
 		let mask = match u32::from_str_radix(&arg_list[2], 8) {
 			Ok(ok) => ok,
-			Err(_e) => exit(-25),
+			Err(_) => exit(-25),
 		};
 
 		let perm = fs::Permissions::from_mode(mask);
 		match fs::set_permissions(fpath, perm) {
-			Ok(_ok) => {
+			Ok(_) => {
 			}
 			Err(_e) => {
 				exit(-25);
@@ -148,104 +248,9 @@ fn chmod(arg_list: &[String])
 		}
 
 		exit(0);
-	} else {
-		if char1 != 'u' && char1 != 'g' && char1 != 'o' && char1 != 'a' {
-			println!("Invalid command");
-			exit(-1);
-		}
-
-		// retrieving initial permissions of the file
-		let path = &arg_list[3];
-
-		let mut init_perm = match retrieve_file_perm(path) {
-			Ok(tmp_perm) => tmp_perm,
-			Err(_) => {
-				exit(-25);
-			}
-		};
-
-		// Eliminate unnecessary digits
-		init_perm = init_perm & 0o777;
-
-		// Convert string mask to numeric mask
-		let mut u = 0;
-		let mut g = 0;
-		let mut o = 0;
-		let mut a = 0;
-		let mut sgn = 0;
-		let mut new_logic = 0;
-		let mut o_bit = 0;
-		let mut mask = 0;
-
-		for c in arg_list[2].chars() {
-			if c == '+' {
-				new_logic = 1;
-				sgn = 1;
-			}
-			if c == '-' {
-				new_logic = 1;
-			}
-			if c == 'u' {
-				u = 1;
-			}
-			if c == 'g' {
-				g = 1;
-			}
-			if c == 'o' {
-				o = 1;
-			}
-			if c == 'a' {
-				a = 1;
-			}
-			if new_logic == 1 {
-				if c == 'r' {
-					o_bit += 4;
-				}
-				if c == 'w' {
-					o_bit += 2;
-				}
-				if c == 'x' {
-					o_bit += 1;
-				}
-			}
-		}
-
-		if u == 1 {
-			mask += 10 * 10 * o_bit;
-		}
-
-		if g == 1 {
-			mask += 10 * o_bit;
-		}
-
-		if o == 1 {
-			mask += o_bit;
-		}
-
-		if a == 1 {
-			mask += (1 + 10 + 10 * 10) * o_bit;
-		}
-
-		let o_str_mask = format!("{}", mask);
-		let o_mask = match u32::from_str_radix(&o_str_mask, 8) {
-			Ok(ok) => ok,
-			Err(_e) => exit(-25),
-		};
-		let mut perm = fs::Permissions::from_mode(o_mask | init_perm);
-		if sgn == 0 {
-			perm = fs::Permissions::from_mode((!o_mask) & init_perm);
-		}
-
-		match fs::set_permissions(fpath, perm) {
-			Ok(_) => {
-			}
-			Err(_) => {
-				exit(-25);
-			}
-		}
-	
-		exit(0);
 	}
+
+	chmod_string_mask(&arg_list);
 }
 
 // Remove recursive
@@ -262,8 +267,8 @@ fn rm_r(dir: &Path) {
 			// Simple rm command
 			let res = fs::remove_file(&npath);
 			match res {
-				Ok(_ok) => (),
-				Err(_e) => {
+				Ok(_) => (),
+				Err(_) => {
 					exit(-70);
 				},
 			}
@@ -278,7 +283,7 @@ fn rm_r(dir: &Path) {
 		Err(_e) => {
 			exit(-70);
 		},
-		Ok(_ok) => {},
+		Ok(_) => {},
 	}
 }
 
@@ -286,7 +291,6 @@ fn rm_r(dir: &Path) {
 fn rm(arg_list: &[String])
 {
 	let mut idx = 2;
-
 	// If an error is encountered, the command continues with next parameters
 	let mut error = 0;
 
@@ -301,7 +305,8 @@ fn rm(arg_list: &[String])
 	}
 
 	if arg_list.len() >= 4 && (arg_list[3] == "-r" || arg_list[3] == "-R" ||
-		arg_list[3] == "--dir" || arg_list[3] == "-d" || arg_list[3] == "--recursive") {
+		arg_list[3] == "--dir" || arg_list[3] == "-d"
+		|| arg_list[3] == "--recursive") {
 		idx += 1;
 
 		if arg_list.len() <= 4 {
@@ -312,9 +317,9 @@ fn rm(arg_list: &[String])
 
 	let not_dir_flag = arg_list[2] != "--dir" && arg_list[2] != "-d" &&
 	!(arg_list.len() >= 4 && (arg_list[3] == "--dir" || arg_list[3] == "-d"));
-
-	let not_r_flag = arg_list[2] != "-r" && arg_list[2] != "-R" && arg_list[2] != "--recursive" &&
-	!(arg_list.len() >= 4 && (arg_list[3] == "-r" || arg_list[3] == "-R" || arg_list[3] == "--recursive"));
+	let not_r_flag = arg_list[2] != "-r" && arg_list[2] != "-R"
+	&& arg_list[2] != "--recursive" && !(arg_list.len() >= 4 && (arg_list[3] == "-r" 
+	|| arg_list[3] == "-R" || arg_list[3] == "--recursive"));
 
 	// idx was set to skip flags and to jump directly to file names
 	for arg in arg_list.iter().skip(idx) {
@@ -339,17 +344,17 @@ fn rm(arg_list: &[String])
 			// Remove directory flag (for empty ones)
 			if !not_dir_flag {
 				match fs::remove_dir(&fpath) {
-					Err(_e) => {
+					Err(_) => {
 						error = 1;
 						continue;
 					},
-					Ok(_ok) => {},
+					Ok(_) => {},
 				}
 			}
 		} else {
 			match fs::remove_file(&arg) {
-				Ok(_ok) => {}
-				Err(_e) => {
+				Ok(_) => {}
+				Err(_) => {
 					error = 1;
 					continue;
 				}
@@ -384,11 +389,13 @@ fn touch(arg_list: &[String])
 			exit(0);
 		}
 
-		if arg_list[2] == "-a" || arg_list[2] == "-c" || arg_list[2] == "--no-create" || exists {
+		if arg_list[2] == "-a" || arg_list[2] == "-c" || arg_list[2] == "--no-create"
+			|| exists {
 			match fs::OpenOptions::new().read(true).open(fpath) {
 				Ok(mut file) => {
-					/* Just opening the file in read mode is not modifying the access time,
-					so actually reading something (like 1 byte) from the file is required */
+					/* Just opening the file in read mode is not modifying
+					the access time, so actually reading something (like 1
+					byte) from the file is required */
 					let mut buff = [0; 1];
 					let _ = file.read(&mut buff).unwrap();
 				},
@@ -398,7 +405,8 @@ fn touch(arg_list: &[String])
 			}
 		}
 
-		if arg_list[2] == "-m" || arg_list[2] == "-c" || arg_list[2] == "--no-create" || exists {
+		if arg_list[2] == "-m" || arg_list[2] == "-c" || arg_list[2] == "--no-create"
+			|| exists {
 			match fs::OpenOptions::new().write(true).open(fpath) {
 				Ok(mut file) => {
 					// Actual write to modify the mtime of the file
@@ -514,15 +522,22 @@ fn ls(arg_list: &[String])
 	let mut fpath_str = ".";
 	let mut skip_idx = 0;
 
-	for i in 0..=1 {
-		if arg_list.len() >= 3 + i && (arg_list[2 + i] == "-a" || arg_list[2 + i] == "-all") {
+	for i in 0..=2 {
+		if arg_list.len() >= 3 + i && (arg_list[2 + i] == "-a"
+			|| arg_list[2 + i] == "-all") {
 			skip_idx += 1;
 			hidden = true;
 		}
 	
-		if arg_list.len() >= 3 + i && (arg_list[2 + i] == "-R" || arg_list[2 + i] == "--recursive") {
+		if arg_list.len() >= 3 + i && (arg_list[2 + i] == "-R"
+			|| arg_list[2 + i] == "--recursive") {
 			skip_idx += 1;
 			recursive = true;
+		}
+
+		if arg_list.len() >= 3 + i && arg_list[2 + i] == "-l" {
+			println!("Invalid command");
+			exit(-80);
 		}
 	}
 
@@ -693,7 +708,8 @@ fn cp(arg_list: &[String]) {
 	// Deep copy needed only for directories
 	if !not_recursive && rsource.is_dir() {
 		let rdestination = Path::new(&arg_list[4]);
-		let rdestination_full = if rdestination.exists() && rdestination.is_dir() {
+		let rdestination_full = if rdestination.exists()
+									&& rdestination.is_dir() {
 			// Adds source folder to destionation path
 			rdestination.join(rsource.file_name().unwrap())
 		} else {
