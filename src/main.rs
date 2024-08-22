@@ -346,37 +346,45 @@ fn rm(arg_list: &[String])
 
 fn touch(arg_list: &[String])
 {
-	for arg in arg_list.iter().skip(2) {
-		let fpath = &Path::new(&arg);
-		if !fpath.exists() && (arg_list[2] == "-c" || arg_list[2] == "--no-create") {
+	let mut skip_idx = 0;
+	let param: bool = arg_list[2] == "-c" || arg_list[2] == "--no-create" ||
+					arg_list[2] == "-a" || arg_list[2] == "-m";
+
+	if arg_list.len() >= 3 && param {
+		skip_idx += 1;
+	}
+
+	for arg in arg_list.iter().skip(2 + skip_idx) {
+		let fpath = Path::new(&arg);
+		let exists: bool = fpath.exists();
+		if !exists && (arg_list[2] == "-c" || arg_list[2] == "--no-create") {
 			exit(0);
 		}
 
-		if arg_list[2] == "-a" {
+		if arg_list[2] == "-a" || arg_list[2] == "-c" || arg_list[2] == "--no-create" || exists {
 			match fs::OpenOptions::new().read(true).open(fpath) {
-				Ok(_) => {},
+				Ok(mut file) => {
+					let mut buff = [0; 1];
+					let _ = file.read(&mut buff).unwrap();
+				},
 				Err(_e) => {
 					exit(-100);
 				},
 			}
-
-			continue;
 		}
 
-		if arg_list[2] == "-m" {
-			match fs::OpenOptions::new().append(true).open(fpath) {
-				Ok(_) => {},
-				Err(_e) => {
-					exit(-100);
-				},
-			}
-
-			continue;
-		}
-
-		if arg_list[2] == "-c" || arg_list[2] == "--no-create" {
+		if arg_list[2] == "-m" || arg_list[2] == "-c" || arg_list[2] == "--no-create" || exists {
 			match fs::OpenOptions::new().write(true).open(fpath) {
-				Ok(_) => {},
+				Ok(mut file) => {
+					let fsize = file.metadata().unwrap().len();
+					match file.write_all(b"\n") {
+						Ok(_) => (),
+						Err(_) => (),
+					}
+
+					file.flush().unwrap();
+					file.set_len(fsize).unwrap();
+				},
 				Err(_e) => {
 					exit(-100);
 				},
