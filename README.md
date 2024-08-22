@@ -1,14 +1,11 @@
-### Copyright 2023 <Toma-Ioan Dumitrescu>
-### Faculty of Automatic Control and Computer Science
-### Group 321 CA
+## Copyright 2023 ~ Toma-Ioan Dumitrescu
+## Faculty of Automatic Control and Computer Science
 
-
-
-## Description
+### Description
 
 This project implements the following commands present in linux terminal: pwd, echo (-n), cat, cp (-r), mv, rm (-r), rmdir, chmod (numerical or string mask), mkdir, touch (-a, -c), ls (-r, -a), grep (-i), ln (-s), using only functions from std and regex, without directly executing the Linux commands (example: exec).
 
-## Implementation
+### Implementation
 
 The idea consists in retaining the list of arguments and calling the appropriate std::fs functions in
 order to perform the requested operations. For returning value, the program uses use std::process::exit. Most of the functions for directories iterator and filesystem operations were
@@ -91,14 +88,14 @@ move). If the destination exists, then it is clearly a rename operation to do, s
 (src, dest) is used. In the other case, construct cp and rm commands and obtain actual move
 command.
 
-## Time-consuming bugs
+### Time-consuming bugs
 
 GitHub submodule taken as the main repo for rustybox, syntax and modifications because of
 borrowing concept, chmod string_mask conversion logical errors, opening a file in read mode
 does not modify the mtime, without actual reading, figuring the ls -R desired format,
 string operations on paths for ls -R, solving classroom.yml GitHub jobs.
 
-## Bibliography:
+### Bibliography:
 https://doc.rust-lang.org/stable/std/index.html
 https://github.com/UPB-CS-Rust/teme/issues/8
 https://doc.rust-lang.org/rust-by-example/std_misc/fs.html
