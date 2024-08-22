@@ -396,27 +396,21 @@ fn touch(arg_list: &[String])
 	exit(0);
 }
 
-fn ls_r(dir: &Path, hidden: bool)
+fn ls_r(dir: &Path, hidden: bool, prefix: &mut String)
 {
 	let dir_itr = fs::read_dir(dir).unwrap();
-	// let fname_opt = dir.file_name()
-	// .and_then(|fname| fname.to_str())
-	// .map(|fstr| fstr.to_string());
-
-	// match fname_opt {
-	// 	Some(fname_string) => {
-	// 		if fname_string.starts_with('.') {
-	// 			if hidden {
-	// 				println!("{}:", fname_string);
-	// 			}
-	// 		} else {
-	// 			println!("{}:", fname_string);
-	// 		}
-	// 	},
-	// 	None => (),
-	// }
 
 	let mut dpaths: Vec<PathBuf> = Vec::new();
+
+	if hidden {
+		let mut prefix_c1 = prefix.clone();
+		prefix_c1.push_str(".");
+		println!("{}", prefix_c1);
+
+		let mut prefix_c1 = prefix.clone();
+		prefix_c1.push_str("..");
+		println!("{}", prefix_c1);
+	}
 
 	for node_err in dir_itr {
 		let node = node_err.unwrap();
@@ -432,14 +426,16 @@ fn ls_r(dir: &Path, hidden: bool)
 
 		match nname_opt {
 			Some(fname_string) => {
+				let mut prefix_c = prefix.clone();
+				prefix_c.push_str(&fname_string);
 				if fname_string.starts_with('.') {
 					if !hidden {
 						continue;
 					}
 	
-					println!("{}", fname_string);
+					println!("{}", prefix_c);
 				} else {
-					println!("{}", fname_string);
+					println!("{}", prefix_c);
 				}
 			},
 			None => (),
@@ -447,7 +443,18 @@ fn ls_r(dir: &Path, hidden: bool)
 	}
 
 	for dir in dpaths {
-		ls_r(&dir, hidden);
+		let string_dir = dir.file_name()
+		.and_then(|fname| fname.to_str())
+		.map(|fstr| fstr.to_string());
+		match string_dir {
+			Some(dname_string) => {
+				let mut relative_path = prefix.clone();
+				relative_path.push_str(&dname_string);
+				relative_path.push_str("/");
+				ls_r(&dir, hidden, &mut relative_path);
+			},
+			None => (),
+		}
 	}
 }
 
@@ -481,7 +488,8 @@ fn ls(arg_list: &[String])
 	}
 
 	if recursive {
-		ls_r(fpath, hidden);
+		let empty_path_string = "";
+		ls_r(fpath, hidden, &mut empty_path_string.to_string());
 		exit(0);
 	}
 
