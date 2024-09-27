@@ -1,2 +1,2 @@
-Makefile linguist-vendored
-*.sh linguist-vendored
+Makefile linguist-documentation
+*.sh linguist-documentation
