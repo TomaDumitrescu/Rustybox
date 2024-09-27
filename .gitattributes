@@ -4,3 +4,6 @@ node_modules/* linguist-vendored
 *.md linguist-documentation
 tests/* linguist-vendored
 .github/* linguist-vendored
+.gitignore linguist-vendored
+Cargo.lock linguist-vendored
+Cargo.toml linguist-vendored
