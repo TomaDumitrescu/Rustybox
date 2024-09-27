@@ -1,5 +1,4 @@
-## Copyright 2024 ~ Toma-Ioan Dumitrescu
-## Faculty of Automatic Control and Computer Science
+## Copyright 2024 Toma-Ioan Dumitrescu
 
 ### Description
 
@@ -88,15 +87,6 @@ move). If the destination exists, then it is clearly a rename operation to do, s
 (src, dest) is used. In the other case, construct cp and rm commands and obtain actual move
 command.
 
-### Time-consuming bugs
-
-GitHub submodule taken as the main repo for rustybox, syntax and modifications because of
-borrowing concept, chmod string_mask conversion logical errors, opening a file in read mode
-does not modify the mtime, without actual reading, figuring the ls -R desired format,
-string operations on paths for ls -R, solving classroom.yml GitHub jobs.
-
 ### Bibliography:
 https://doc.rust-lang.org/stable/std/index.html
-https://github.com/UPB-CS-Rust/teme/issues/8
 https://doc.rust-lang.org/rust-by-example/std_misc/fs.html
-https://upb-cs-rust.github.io/teme/rustybox.html
